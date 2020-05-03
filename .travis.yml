@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t umutyilmaz/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run umutyilmaz/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t umutyilmaz/multi-client ./client
+  - docker build -t umutyilmaz/multi-nginx ./nginx
+  - docker build -t umutyilmaz/multi-server ./server
+  - docker build -t umutyilmaz/multi-worker ./worker
+  # Log in to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push them to docker hub
+  - docker push umutyilmaz/multi-client
+  - docker push umutyilmaz/multi-nginx
+  - docker push umutyilmaz/multi-server
+  - docker push umutyilmaz/multi-worker
